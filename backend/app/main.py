@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import productos
+from .routers import productos
 
 app = FastAPI(title="Sistema de Inventario Universal - Backend")
 
