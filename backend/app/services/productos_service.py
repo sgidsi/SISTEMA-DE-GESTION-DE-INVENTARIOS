@@ -1,6 +1,13 @@
 from sqlalchemy.orm import Session
-from models.productos import Producto
-from schemas.productos import ProductoCreate, ProductoUpdate
+from app.models.productos import Producto
+from app.schemas.productos import ProductoCreate, ProductoUpdate
+
+def create_producto(db: Session, data: ProductoCreate):
+    nuevo = Producto(**data.dict())
+    db.add(nuevo)
+    db.commit()
+    db.refresh(nuevo)
+    return nuevo
 
 def get_productos(db: Session):
     return db.query(Producto).all()
@@ -8,25 +15,23 @@ def get_productos(db: Session):
 def get_producto(db: Session, producto_id: int):
     return db.query(Producto).filter(Producto.id == producto_id).first()
 
-def create_producto(db: Session, producto: ProductoCreate):
-    db_producto = Producto(**producto.dict())
-    db.add(db_producto)
-    db.commit()
-    db.refresh(db_producto)
-    return db_producto
+def update_producto(db: Session, producto_id: int, data: ProductoUpdate):
+    producto = get_producto(db, producto_id)
+    if not producto:
+        return None
 
-def update_producto(db: Session, producto_id: int, producto: ProductoUpdate):
-    db_producto = db.query(Producto).filter(Producto.id == producto_id).first()
-    if db_producto:
-        for key, value in producto.dict(exclude_unset=True).items():
-            setattr(db_producto, key, value)
-        db.commit()
-        db.refresh(db_producto)
-    return db_producto
+    for field, value in data.dict(exclude_unset=True).items():
+        setattr(producto, field, value)
+
+    db.commit()
+    db.refresh(producto)
+    return producto
 
 def delete_producto(db: Session, producto_id: int):
-    db_producto = db.query(Producto).filter(Producto.id == producto_id).first()
-    if db_producto:
-        db.delete(db_producto)
-        db.commit()
-    return db_producto
+    producto = get_producto(db, producto_id)
+    if not producto:
+        return None
+
+    db.delete(producto)
+    db.commit()
+    return True

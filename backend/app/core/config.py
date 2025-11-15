@@ -1,18 +1,11 @@
-import os
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from dotenv import load_dotenv
+from pydantic import BaseSettings
 
-load_dotenv()
+class Settings(BaseSettings):
+    DATABASE_URL: str
+    SUPABASE_URL: str
+    SUPABASE_KEY: str
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+    class Config:
+        env_file = ".env"
 
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+settings = Settings()
