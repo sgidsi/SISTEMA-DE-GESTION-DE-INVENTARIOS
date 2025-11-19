@@ -2,26 +2,25 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from dotenv import load_dotenv
 import os
+from pathlib import Path
 
-# Cargar variables del .env
-load_dotenv()
+# ==== Cargar .env desde la carpeta /app ====
+env_path = Path(__file__).resolve().parent.parent / ".env"
+load_dotenv(dotenv_path=env_path)
+# ===========================================
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 if not DATABASE_URL:
     raise ValueError("DATABASE_URL no está definido en el archivo .env")
 
-# Convertir URL normal a versión async para SQLAlchemy
-# Ejemplo:
-# postgresql://user:pass@host:5432/db
-# se convierte a:
-# postgresql+asyncpg://user:pass@host:5432/db
+# Convertir URL normal a versión async
 ASYNC_DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
 
 # Crear el engine asincrónico
 engine = create_async_engine(
     ASYNC_DATABASE_URL,
-    echo=False,                 # Cambia a True solo para debug
+    echo=False,
     future=True,
     pool_size=5,
     max_overflow=10
@@ -37,7 +36,7 @@ async_session = sessionmaker(
 # Base para los modelos
 Base = declarative_base()
 
-# Dependencia para obtener la sesión (para usar en los routers)
+# Dependencia para obtener la sesión
 async def get_session():
     async with async_session() as session:
         try:
